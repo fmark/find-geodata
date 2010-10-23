@@ -131,10 +131,6 @@ class FindGeodata(wx.Frame):
             dialog.Destroy()
         else:
             self.UserError("You must select at least one item to create a list.")
-        
-           # try to find somewhere to save.  
-           #If user saves, create a saver and save it
-        # else throw an error
     
     def OnBrowseClick(self, event):
         dialog = wx.DirDialog(None, "Please choose the directory to search in:",
