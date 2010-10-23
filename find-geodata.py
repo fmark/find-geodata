@@ -3,7 +3,29 @@
 import os
 import wx
 
+from threading import Thread
+from wx.lib.pubsub import Publisher
+                
 import geofind
+
+class FinderThread(Thread):
+    """Finder Worker Thread Class."""
+ 
+    #----------------------------------------------------------------------
+    def __init__(self, search_path):
+        """Finder Worker Thread Class."""
+        Thread.__init__(self)
+        self.search_path = search_path
+        self.start()    # start the thread
+ 
+    #----------------------------------------------------------------------
+    def run(self):
+        """Run Worker Thread."""
+        # This is the code executing in the new thread.
+        finder = geofind.finder(self.search_path)
+        items = finder.search()
+        wx.CallAfter(Publisher().sendMessage, "searchdone", items)
+ 
 
 class FindGeodata(wx.Frame):
     def __init__(self, parent, id, title):
@@ -84,6 +106,8 @@ class FindGeodata(wx.Frame):
         hbox6.Add(btn2, 0, wx.LEFT | wx.BOTTOM , 5)
         vbox.Add(hbox6, 0, wx.ALIGN_RIGHT | wx.RIGHT, 10)
 
+        Publisher().subscribe(self.searchDone, "searchdone")
+
         panel.SetSizer(vbox)
         self.Centre()
         self.Show(True)
@@ -104,17 +128,17 @@ class FindGeodata(wx.Frame):
         if os.path.isdir(self.root_dir_tc.GetValue()):
             self.search_btn.Disable()
             self.status_text.SetLabel("Searching...")
-            self.Refresh()
-            finder = geofind.finder(self.root_dir_tc.GetValue())
-            items = finder.search()
-            self.search_btn.Enable()
-            self.geodata_listbox.InsertItems(items=items, pos=0)
-            self.status_text.SetLabel("Found %d item%s" % (len(items), "" if len(items) == 1 else "s"))
+            FinderThread(self.root_dir_tc.GetValue())
         else:
             dial = wx.MessageDialog(None, '"%s" is not a folder.' % self.root_dir_tc.GetValue(), 'Error', wx.OK | 
                                     wx.ICON_ERROR)
             dial.ShowModal()
 
+    def searchDone(self, msg):
+        items = msg.data
+        self.search_btn.Enable()
+        self.geodata_listbox.InsertItems(items=items, pos=0)
+        self.status_text.SetLabel("Found %d item%s" % (len(items), "" if len(items) == 1 else "s"))
 
             
 app = wx.App()
