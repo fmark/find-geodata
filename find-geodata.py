@@ -116,13 +116,38 @@ class FindGeodata(wx.Frame):
         self.Close(True)
 
     def OnCreateListClick(self, event):
-        pass
+        # if at least one item is checked
+        save_items = self.geodata_listbox.GetCheckedStrings()
+        if len(save_items) > 0:
+            dialog = wx.FileDialog ( None, 
+                                     message = "Save list",
+                                     defaultFile="geodata_list.rtf",
+                                     wildcard = "Rich text documents (*.rtf)|*.rtf|" \
+                                         "All files (*.*)|*.*",
+                                     style = wx.SAVE | wx.OVERWRITE_PROMPT )
+            if dialog.ShowModal() == wx.ID_OK:
+                saver = geofind.saver(save_items)
+                saver.save(dialog.GetPath())
+            dialog.Destroy()
+        else:
+            self.UserError("You must select at least one item to create a list.")
+        
+           # try to find somewhere to save.  
+           #If user saves, create a saver and save it
+        # else throw an error
     
     def OnBrowseClick(self, event):
-        dialog = wx.DirDialog(None, "Please choose your project directory:",
+        dialog = wx.DirDialog(None, "Please choose the directory to search in:",
                               style=1 ,defaultPath=self.root_dir_tc.GetValue(), pos = (10,10))
         if dialog.ShowModal() == wx.ID_OK:
             self.root_dir_tc.SetValue(dialog.GetPath())
+
+    def UserError(self, msg):
+        dial = wx.MessageDialog(None, msg, 'Error', wx.OK | 
+                                wx.ICON_ERROR)
+        dial.ShowModal()
+        dial.Destroy()
+
 
     def OnSearchClick(self, event):
         if os.path.isdir(self.root_dir_tc.GetValue()):
@@ -130,10 +155,8 @@ class FindGeodata(wx.Frame):
             self.status_text.SetLabel("Searching...")
             FinderThread(self.root_dir_tc.GetValue())
         else:
-            dial = wx.MessageDialog(None, '"%s" is not a folder.' % self.root_dir_tc.GetValue(), 'Error', wx.OK | 
-                                    wx.ICON_ERROR)
-            dial.ShowModal()
-
+            self.UserError('"%s" is not a folder.' % 
+                           self.root_dir_tc.GetValue())
     def searchDone(self, msg):
         items = msg.data
         self.search_btn.Enable()
