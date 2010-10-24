@@ -1,6 +1,8 @@
 from distutils.core import setup
+from glob import glob
 import py2exe
 
+data_files = [("Microsoft.VC90.CRT", glob(r'ms-vc-runtime\*.*'))]
 includes = []
 excludes = ['_gtkagg', '_tkagg', 'bsddb', 'curses', 'email', 'pywin.debugger',
             'pywin.debugger.dbgcon', 'pywin.dialogs', 'tcl',
@@ -24,6 +26,7 @@ setup(
                           "custom_boot_script": '',
                          }
               },
+    data_files=data_files,
     windows=['find-geodata.py']
 )
  
