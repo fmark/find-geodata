@@ -6,7 +6,8 @@ import sys
 import wx
 
 from threading import Thread
-from wx.lib.pubsub import Publisher
+from wx.lib.pubsub import setuparg1 # Needed for py2exe
+from wx.lib.pubsub import pub as Publisher
                 
 import geofind
 
@@ -35,7 +36,7 @@ class FinderThread(Thread):
         # This is the code executing in the new thread.
         finder = geofind.finder(self.search_path)
         items = finder.search()
-        wx.CallAfter(Publisher().sendMessage, "searchdone", items)
+        wx.CallAfter(Publisher.sendMessage, "searchdone", items)
  
 
 class FindGeodata(wx.Frame):
@@ -117,7 +118,7 @@ class FindGeodata(wx.Frame):
         hbox6.Add(btn2, 0, wx.LEFT | wx.BOTTOM , 5)
         vbox.Add(hbox6, 0, wx.ALIGN_RIGHT | wx.RIGHT, 10)
 
-        Publisher().subscribe(self.searchDone, "searchdone")
+        Publisher.subscribe(self.searchDone, "searchdone")
 
         panel.SetSizer(vbox)
         self.Centre()
