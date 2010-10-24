@@ -1,12 +1,23 @@
 #!/usr/bin/env python
 
 import os
+import subprocess
+import sys
 import wx
 
 from threading import Thread
 from wx.lib.pubsub import Publisher
                 
 import geofind
+
+def shell_open_file(path):
+    if sys.platform == 'win32':
+        os.startfile(path)
+    elif sys.platform == 'darwin':
+        subprocess.call(('open', path))
+    elif sys.platform == 'linux2':
+        subprocess.call(('xdg-open', path))
+
 
 class FinderThread(Thread):
     """Finder Worker Thread Class."""
@@ -128,6 +139,11 @@ class FindGeodata(wx.Frame):
             if dialog.ShowModal() == wx.ID_OK:
                 saver = geofind.saver(save_items)
                 saver.save(dialog.GetPath())
+                dial = wx.MessageDialog(None, 'List saved successfully. Would you like to edit it now?',
+                                        'Edit list', wx.OK | wx.CANCEL | wx.ICON_QUESTION)
+                if dial.ShowModal() ==  wx.ID_OK:
+                    shell_open_file(dialog.GetPath())
+                dial.Destroy()
             dialog.Destroy()
         else:
             self.UserError("You must select at least one item to create a list.")
